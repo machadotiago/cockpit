@@ -269,11 +269,14 @@ else
   AC_MSG_ERROR(no. Please install intltool package)
 fi
 
-# phantomjs
+# chromium - same as test/common/cdp.py
 
-AC_PATH_PROG([PHANTOMJS], [phantomjs], [], [$srcdir/node_modules/.bin$PATH_SEPARATOR$PATH])
-AM_CONDITIONAL([WITH_PHANTOMJS], [test -n "$PHANTOMJS"])
-AC_SUBST([PHANTOMJS])
+AC_PATH_PROGS([CHROMIUM], [chromium-browser chrome], [], [$srcdir/node_modules/chromium/lib/chromium/chrome-linux/chrome$PATH_SEPARATOR$PATH])
+if test -z "$CHROMIUM"; then
+  AC_PATH_PROG([CHROMIUM], [headless_shell], [], [/usr/lib/chromium-browser$PATH_SEPARATOR/usr/lib64/chromium-browser])
+fi
+AM_CONDITIONAL([WITH_CHROMIUM], [test -n "$CHROMIUM"])
+AC_SUBST([CHROMIUM])
 
 # go
 
@@ -366,6 +369,19 @@ AC_ARG_WITH(networkmanager-needs-root,
 	    [with_networkmanager_needs_root=yes])
 AC_SUBST(with_networkmanager_needs_root)
 
+AC_ARG_WITH(appstream-config-packages,
+            AC_HELP_STRING([--with-appstream-config-packages=JSON],
+                           [List of packages that configure the system to retrieve AppStream collection metadata]),
+            [],
+            [with_appstream_config_packages='[[]]'])
+AC_SUBST(with_appstream_config_packages)
+
+AC_ARG_WITH(appstream-data-packages,
+            AC_HELP_STRING([--with-appstream-data-packages=JSON],
+                           [List of packages that contain AppStream collection metadata]),
+            [],
+            [with_appstream_data_packages='[[]]'])
+AC_SUBST(with_appstream_data_packages)
 
 # Address sanitizer
 

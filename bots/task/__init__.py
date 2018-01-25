@@ -24,6 +24,7 @@
 import argparse
 import os
 import random
+import shutil
 import socket
 import subprocess
 import sys
@@ -55,7 +56,6 @@ verbose = False
 
 BOTS = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 BASE = os.path.normpath(os.path.join(BOTS, ".."))
-DEVNULL = open("/dev/null", "r+")
 
 #
 # The main function takes a list of tasks, each of wihch has the following
@@ -421,3 +421,7 @@ def comment(issue, comment):
     except TypeError:
         number = issue
     return api.post("issues/{0}/comments".format(number), { "body": comment })
+
+def attach(filename):
+    if "TEST_ATTACHMENTS" in os.environ:
+        shutil.copy(filename, os.environ["TEST_ATTACHMENTS"])

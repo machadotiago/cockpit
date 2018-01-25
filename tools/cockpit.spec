@@ -136,7 +136,13 @@ fi
 
 %build
 exec 2>&1
-%configure --disable-silent-rules --with-cockpit-user=cockpit-ws --with-selinux-config-type=etc_t %{?rhel:--without-storaged-iscsi-sessions} %{!?build_dashboard:--disable-ssh}
+%configure \
+    --disable-silent-rules \
+    --with-cockpit-user=cockpit-ws \
+    --with-selinux-config-type=etc_t \
+    %{?rhel:--without-storaged-iscsi-sessions} \
+    --with-appstream-data-packages='[ "appstream-data" ]' \
+    %{!?build_dashboard:--disable-ssh}
 make -j4 %{?extra_flags} all
 
 %check
@@ -264,6 +270,8 @@ rm -rf %{buildroot}/usr/src/debug
 # On RHEL kdump, subscriptions, networkmanager, selinux, and sosreport are part of the system package
 %if 0%{?rhel}
 cat kdump.list subscriptions.list sosreport.list networkmanager.list selinux.list >> system.list
+rm %{buildroot}/usr/share/metainfo/org.cockpit-project.cockpit-sosreport.metainfo.xml
+rm %{buildroot}/usr/share/pixmaps/cockpit-sosreport.png
 %endif
 
 %find_lang %{name}
@@ -406,11 +414,8 @@ Requires: device-mapper-multipath
 %else
 %if 0%{?rhel} == 7
 Requires: udisks2 >= 2.6
-# FIXME: udisks2 modules not yet available on 7.5
-%if "%{os_version_id}" != "7.5"
 Requires: udisks2-lvm2 >= 2.6
 Requires: udisks2-iscsi >= 2.6
-%endif
 Requires: device-mapper-multipath
 %else
 %if 0%{?fedora} >= 27 || 0%{?rhel} >= 8
@@ -600,6 +605,8 @@ The Cockpit component for creating diagnostic reports with the
 sosreport tool.
 
 %files sosreport -f sosreport.list
+/usr/share/metainfo/org.cockpit-project.cockpit-sosreport.metainfo.xml
+/usr/share/pixmaps/cockpit-sosreport.png
 
 %package subscriptions
 Summary: Cockpit subscription user interface package
