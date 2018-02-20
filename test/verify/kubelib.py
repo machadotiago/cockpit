@@ -147,7 +147,7 @@ class VolumeTests(object):
 
         b.wait_present(".pv-listing tbody[data-id='pv1']")
 
-        m.execute("kubectl delete namespace another")
+        m.execute("kubectl delete namespace another", timeout=600)
         b.wait_not_present(".pvc-listing")
 
     def testVolumes(self):
@@ -1517,9 +1517,9 @@ class RegistryTests(object):
         b = self.browser
 
         # create push and pull user and login as pushuser
-        o.execute("oadm policy add-role-to-user registry-viewer pulluser -n marmalade")
-        o.execute("oadm policy add-role-to-user registry-editor pushuser -n marmalade")
-        o.execute("oadm policy add-role-to-user registry-viewer pushuser -n pizzazz")
+        o.execute("oc adm policy add-role-to-user registry-viewer pulluser -n marmalade")
+        o.execute("oc adm policy add-role-to-user registry-editor pushuser -n marmalade")
+        o.execute("oc adm policy add-role-to-user registry-viewer pushuser -n pizzazz")
 
         self.setup_user("pushuser", "a")
         self.login_and_go(self.registry_root)

@@ -19,6 +19,9 @@
 
 // @flow
 
+export type Labels = {[string]: string};
+export type Annotations = Object;
+
 export type Vm = {
     apiVersion: string,
     kind: 'VirtualMachine',
@@ -26,7 +29,7 @@ export type Vm = {
         clusterName: string,
         creationTimestamp: string,
         generation: number,
-        labels: {[string]: string},
+        labels: Labels,
         name: string,
         namespace: string,
         resourceVersion: string,
@@ -60,3 +63,74 @@ export type Vm = {
         phase: ?string
     }
 }
+
+export type VmMessages = {
+  message: string,
+  detail: Object,
+}
+
+export type PersistenVolume = {
+    "kind": "PersistentVolume",
+    "apiVersion": string,
+    "metadata": {
+        "name": string,
+        "selfLink": string,
+        "uid": string,
+        "resourceVersion": string,
+        "creationTimestamp": string,
+        "labels": Labels,
+        "annotations": Annotations,
+    },
+    "spec": {
+        "capacity": {
+            "storage": string
+        },
+        "iscsi": {
+            "targetPortal": string,
+            "iqn": string,
+            "lun": number,
+            "iscsiInterface": string
+        },
+        "accessModes": Array<Object>,
+        "claimRef": {
+            "kind": "PersistentVolumeClaim",
+            "namespace": string,
+            "name": string,
+            "uid": string,
+            "apiVersion": string,
+            "resourceVersion": string
+        },
+        "persistentVolumeReclaimPolicy": string
+    },
+    "status": ?{
+        "phase": ?string
+    }
+}
+
+export type PersistenVolumes = Array<PersistenVolume>;
+
+export type PodMetadata = {
+    "name": string,
+    "generateName": ?string,
+    "namespace": string,
+    "selfLink": string,
+    "uid": string,
+    "resourceVersion": string,
+    "creationTimestamp": string,
+    "labels": Labels,
+    "annotations": Annotations
+};
+
+export type PodSpec = Object; // TODO: define when needed
+
+export type Pod = {
+    "kind": "Pod",
+    "apiVersion": string,
+    "metadata": PodMetadata,
+    "spec": PodSpec,
+    "status": ?{
+        "phase": ?string
+    }
+};
+
+export type Pods = Array<Pod>;

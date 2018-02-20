@@ -1,7 +1,7 @@
 /*
  * This file is part of Cockpit.
  *
- * Copyright (C) 2017 Red Hat, Inc.
+ * Copyright (C) 2018 Red Hat, Inc.
  *
  * Cockpit is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,20 @@
  * along with Cockpit; If not, see <http://www.gnu.org/licenses/>.
  */
 
-function* rootSaga() {
-}
+import { getValueOrDefault, VM_UID_LABEL } from "./utils.jsx";
 
-export default rootSaga;
+/**
+ * Returns pod corresponding to the given vm.
+ */
+export function getPod(vm, pods) {
+    if (!pods) {
+        return null;
+    }
+
+    const vmId = vm.metadata.uid;
+    if (!vmId) {
+        return null;
+    }
+
+    return pods.find(pod => getValueOrDefault(() => pod.metadata.labels[VM_UID_LABEL], null) === vmId);
+}

@@ -19,66 +19,74 @@
 
 // @flow
 
-import React from 'react'
-import { gettext as _ } from 'cockpit'
+import React, { PropTypes } from 'react';
+import { gettext as _ } from 'cockpit';
+import { connect } from "react-redux";
 
-import { ListingRow } from '../../../../lib/cockpit-components-listing.jsx'
-import type { Vm } from '../types.jsx'
-import { getPairs } from '../utils.jsx'
+import { ListingRow } from '../../../../lib/cockpit-components-listing.jsx';
+import VmOverviewTab from './VmOverviewTabKubevirt.jsx';
+import VmActions from './VmActions.jsx';
+import VmDisksTab from './VmDisksTabKubevirt.jsx';
 
-const NODE_LABEL = 'kubevirt.io/nodeName'
-function getNodeName(vm: Vm) {
-    return (vm.metadata.labels && vm.metadata.labels[NODE_LABEL]) || null
-}
+import type { Vm, VmMessages, PersistenVolumes, Pod } from '../types.jsx';
+import { NODE_LABEL, vmIdPrefx } from '../utils.jsx';
+import { vmExpanded } from "../action-creators.jsx";
+import { getValueOrDefault } from "../utils.jsx";
 
-const GeneralTab = ({ vm }: { vm: Vm }) => {
-    const nodeName = getNodeName(vm)
-    const nodeLink = nodeName ? (<a href={`#/nodes/${nodeName}`}>{nodeName}</a>) : '-'
-    return (
-        <div className="row">
-            <div className="col-xs-12 col-md-6">
-                <dl>
-                    <dt>{_("Node")}</dt>
-                    <dd className="vm-node">{nodeLink}</dd>
-                </dl>
-            </div>
-            <div className="col-xs-12 col-md-6">
-                <dl className="full-width">
-                    <dt>{_("Labels")}</dt>
-                    {vm.metadata.labels && getPairs(vm.metadata.labels).map(pair => {
-                        const printablePair = pair.key + '=' + pair.value
-                        return (<dd key={printablePair}>{printablePair}</dd>)
-                    })}
-                </dl>
-            </div>
-        </div>
-    )
-}
+React;
 
-const VmsListingRow = ({ vm }: { vm: Vm }) => {
-    const node = (vm.metadata.labels && vm.metadata.labels[NODE_LABEL]) || '-'
-    const phase = (vm.status && vm.status.phase) || _("n/a")
-    const generalTabRenderer = {
-        name: _("General"),
-        renderer: GeneralTab,
-        data: { vm },
+const VmsListingRow = ({ vm, vmMessages, pvs, pod, vmUi, onExpandChanged }:
+                           { vm: Vm, vmMessages: VmMessages, pvs: PersistenVolumes, pod: Pod, onExpandChanged: Function }) => {
+    const node = (vm.metadata.labels && vm.metadata.labels[NODE_LABEL]) || '-';
+    const phase = (vm.status && vm.status.phase) || _("n/a");
+    const idPrefix = vmIdPrefx(vm);
+
+    const overviewTabRenderer = {
+       name: _("Overview"),
+        renderer: VmOverviewTab,
+        data: { vm, vmMessages, pod },
         presence: 'always',
-    }
+    };
+
+    const disksTabRenderer = {
+        name: (<div id={`${idPrefix}-disks-tab`}>{_("Disks")}</div>),
+        renderer: VmDisksTab,
+        data: { vm, pvs },
+        presence: 'onlyActive',
+    };
+
+    const initiallyExpanded = getValueOrDefault(() => vmUi.isExpanded, false);
+
     return (
         <ListingRow
-            rowId={`vm-${vm.metadata.name}`}
+            rowId={idPrefix}
             columns={[
-                {name: vm.metadata.name, 'header': true},
+                { name: vm.metadata.name, 'header': true },
                 vm.metadata.namespace,
                 node,
                 phase // phases description https://github.com/kubevirt/kubevirt/blob/master/pkg/api/v1/types.go
             ]}
-            tabRenderers={[generalTabRenderer]}/>
-    )
-}
+            tabRenderers={[ overviewTabRenderer, disksTabRenderer ]}
+            listingActions={<VmActions vm={vm}/>}
+            expandChanged={onExpandChanged(vm)}
+            initiallyExpanded={initiallyExpanded} />
+    );
+};
 
 VmsListingRow.propTypes = {
-    vm: React.PropTypes.object.isRequired
-}
+    vm: PropTypes.object.isRequired,
+    vmMessages: PropTypes.object.isRequired,
+    pvs: PropTypes.array.isRequired,
+    pod: PropTypes.object.isRequired,
+    vmUi: PropTypes.object,
+    onExpandChanged: PropTypes.func.isRequired,
+};
 
-export default VmsListingRow
+export default connect(
+    ({ ui }, { vm }) => ({
+        vmUi: ui[vm.metadata.uid]
+    }),
+    (dispatch) => ({
+        onExpandChanged: (vm) => (isExpanded) => dispatch(vmExpanded({ vm, isExpanded }))
+    })
+)(VmsListingRow);

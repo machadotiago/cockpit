@@ -1,7 +1,7 @@
 /*
  * These are routines used by our testing code.
  *
- * jQuery is not necesarily present. Don't rely on it
+ * jQuery is not necessarily present. Don't rely on it
  * for routine operations.
  */
 
@@ -181,25 +181,6 @@ function ph_go(href) {
 function ph_focus(sel)
 {
     ph_find(sel).focus();
-}
-
-// Convert return value from a JS expression into a standard JS Promise, so
-// that it can be processed by CDP Runtime.evaluate() with awaitPromise=true.
-function ph_wrap_promise(value) {
-    // Standard promise
-    if (value instanceof Promise)
-        return value;
-
-    // Cockpit promise, wrap it in standard promise
-    if (typeof(value) === "function" && value.done)
-        return new Promise((resolve, reject) => {
-            value
-                .done(resolve)
-                .fail(reject);
-        });
-
-    // normal value, just wrap it in promise
-    return new Promise((resolve, reject) => resolve(value));
 }
 
 function ph_wait_cond(cond, timeout) {
